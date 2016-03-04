@@ -44,6 +44,13 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         Player player = event.getPlayer();
         FishHook hook = event.getHook();
         
+        //Boost hook speed
+        Vector newHookSpeed = hook.getVelocity().clone();
+        
+        newHookSpeed.multiply(new Vector(4, 4, 4));
+        
+        hook.setVelocity(newHookSpeed);
+        
         //Create a boolean to know if the hook has landed
         boolean hookLanded;
         
@@ -51,7 +58,7 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         Location hookLocation = hook.getLocation();
         
         //Set coordinates to the block under the hook
-        hookLocation.setY(hookLocation.getY() - 1);
+        hookLocation.setY(hookLocation.getY() - 1.5);
         
         //Find out what block that is
         Block hookBlock = hookLocation.getBlock();
@@ -59,6 +66,7 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         if(hookBlock.getType() == Material.AIR)
         {
             hookLanded = false;
+            getLogger().info("Failed coordinates: " + hookLocation);
         }
         else
         {
