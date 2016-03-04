@@ -47,7 +47,7 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         //Boost hook speed
         Vector newHookSpeed = hook.getVelocity().clone();
         
-        newHookSpeed.multiply(new Vector(4, 4, 4));
+        newHookSpeed.multiply(new Vector(5, 5, 5));
         
         hook.setVelocity(newHookSpeed);
         
@@ -58,12 +58,22 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         Location hookLocation = hook.getLocation();
         
         //Set coordinates to the block under the hook
-        hookLocation.setY(hookLocation.getY() - 1.5);
+        hookLocation.setY(hookLocation.getY() - 1);
+        
+        //Set up backup locations due to buggy detection
+        Location hookLocationBackup = hookLocation;
+        hookLocationBackup.setY(hookLocationBackup.getY() - 0.5);
+        
+        Location hookLocationBackup2 = hookLocation;
+        hookLocationBackup2.setY(hookLocationBackup2.getY() - 1);
         
         //Find out what block that is
         Block hookBlock = hookLocation.getBlock();
+        Block hookBlockBackup1 = hookLocationBackup.getBlock();
+        Block hookBlockBackup2 = hookLocationBackup2.getBlock();
         
-        if(hookBlock.getType() == Material.AIR)
+        if(hookBlock.getType() == Material.AIR || hookBlockBackup1.getType() == Material.AIR 
+                || hookBlockBackup2.getType() == Material.AIR)
         {
             hookLanded = false;
             getLogger().info("Failed coordinates: " + hookLocation);
@@ -76,13 +86,16 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         //If the hook has landed (or is in the ground), proceed with the grapple
         if (hookLanded || event.getState() == IN_GROUND)
         {
+            //Debug code
             String test = player.getDisplayName();
             getLogger().info(test + " has cast a valid line");
-            Vector newPlayerSpeed = player.getVelocity();
-            newPlayerSpeed.multiply(new Vector(2, 1, 2));
-            newPlayerSpeed.add(new Vector(0, 1, 0));
             
-            player.setVelocity(newPlayerSpeed);
+            //Change player velocity
+            Vector newPlayerVelocity = player.getVelocity();
+            newPlayerVelocity.multiply(new Vector(2, 1, 2));
+            newPlayerVelocity.add(new Vector(0, 1, 0));
+            
+            player.setVelocity(newPlayerVelocity);
         }
         
     }
