@@ -78,8 +78,11 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         {
             String test = player.getDisplayName();
             getLogger().info(test + " has cast a valid line");
-            Vector vector = new Vector(0, 1, 0);
-            player.setVelocity(vector);
+            Vector newPlayerSpeed = player.getVelocity();
+            newPlayerSpeed.multiply(new Vector(2, 1, 2));
+            newPlayerSpeed.add(new Vector(0, 1, 0));
+            
+            player.setVelocity(newPlayerSpeed);
         }
         
     }
