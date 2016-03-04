@@ -96,7 +96,7 @@ public final class FlyHook  extends JavaPlugin implements Listener{
 
             //If the hook has landed (or is in the ground), proceed with the grapple
             if (hookLanded && event.getState() == FISHING || 
-                    event.getState() == IN_GROUND && event.getState() == FISHING)
+                    event.getState() == IN_GROUND)
             {
                 //Debug code
                 String test = player.getDisplayName();
