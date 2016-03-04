@@ -1,5 +1,9 @@
 package com.magmaguy.flyhook;
 
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.entity.FishHook;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -33,15 +37,40 @@ public final class FlyHook  extends JavaPlugin implements Listener{
     }
     
     @EventHandler
-    public void Fishing(PlayerFishEvent event)
+    public void Grapple(PlayerFishEvent event)
     {
-        Player player = event.getPlayer();
         
-        if (event.getState() == IN_GROUND)
+        //Select player and hook
+        Player player = event.getPlayer();
+        FishHook hook = event.getHook();
+        
+        //Create a boolean to know if the hook has landed
+        boolean hookLanded;
+        
+        //Find hook location
+        Location hookLocation = hook.getLocation();
+        
+        //Set coordinates to the block under the hook
+        hookLocation.setY(hookLocation.getY() - 1);
+        
+        //Find out what block that is
+        Block hookBlock = hookLocation.getBlock();
+        
+        if(hookBlock.getType() == Material.AIR)
+        {
+            hookLanded = false;
+        }
+        else
+        {
+            hookLanded = true;
+        }
+        
+        //If the hook has landed (or is in the ground), proceed with the grapple
+        if (hookLanded || event.getState() == IN_GROUND)
         {
             String test = player.getDisplayName();
-            getLogger().info(test);
-            Vector vector = new Vector(0, 3, 0);
+            getLogger().info(test + " has cast a valid line");
+            Vector vector = new Vector(0, 1, 0);
             player.setVelocity(vector);
         }
         
