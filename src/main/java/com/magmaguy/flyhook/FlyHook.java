@@ -91,7 +91,7 @@ public final class FlyHook  extends JavaPlugin implements Listener{
                 //Teleport hook to the targetted location
                 hook.teleport(targettedLocation);
                 
-                getLogger().info("teleport location: " + targettedLocation);
+                //getLogger().info("teleport location: " + targettedLocation);    //DEBUG INFO
                 }
             
             //If the block isn't air, proceed ##TODO - MORE FILTERS (liquids, other)
@@ -118,7 +118,7 @@ public final class FlyHook  extends JavaPlugin implements Listener{
                     test2.setZ(tempZ);
 
                     player.setVelocity(test2);
-                    //getLogger().info(test2 + " - Finalized");                 //DEBUG INFO
+                    //getLogger().info(test2 + " - Finalized");                   //DEBUG INFO
             }
                 
         }
