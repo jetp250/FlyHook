@@ -49,6 +49,7 @@ public final class FlyHook  extends JavaPlugin implements Listener{
     }
 
     Location targettedLocation;
+    Block targettedBlock;
     
     @EventHandler
     public void Grapple(PlayerFishEvent event)
@@ -67,9 +68,6 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         
         
         //Block detection
-        //Create a boolean to know if it was successful
-        Boolean blockDetection = false;
-        
         //Check if the item is a grapppling hook
         if (playerItem.getItemMeta().hasDisplayName())
         {
@@ -80,12 +78,12 @@ public final class FlyHook  extends JavaPlugin implements Listener{
             boolean flyingBoolean = flyingPlayer.cB();
             
             //If they are, proceed
-            if (flyingBoolean)
+            if (flyingBoolean && event.getState() != IN_GROUND)
             {
                 //getLogger().info(player + " is flying an Elytra");              //DEBUG INFO
                 
                 //Check if the player has hit a block
-                Block targettedBlock = player.getTargetBlock((Set<Material>) null, 60);
+                targettedBlock = player.getTargetBlock((Set<Material>) null, 32);
                 
                 //Log selected block position
                 targettedLocation = targettedBlock.getLocation();
@@ -93,14 +91,15 @@ public final class FlyHook  extends JavaPlugin implements Listener{
                 //Teleport hook to the targetted location
                 hook.teleport(targettedLocation);
                 
-                //If the block isn't air, proceed ##TODO - MORE FILTERS (liquids, other)
-                if (targettedBlock.getType() != Material.AIR)
-                {
-                    blockDetection = true;
-                    
+                getLogger().info("teleport location: " + targettedLocation);
+                }
+            
+            //If the block isn't air, proceed ##TODO - MORE FILTERS (liquids, other)
+            if (event.getState() == IN_GROUND)
+            {
                     //Vector math
                     //Apply if the block detection occurred correctly
-                    Vector test = targettedLocation.toVector().subtract(player.getLocation().toVector());
+                    Vector test = hook.getLocation().toVector().subtract(player.getLocation().toVector());
                     Vector test2 = test;
                     
                     //getLogger().info(test + " - First vector");                 //DEBUG INFO
@@ -119,11 +118,9 @@ public final class FlyHook  extends JavaPlugin implements Listener{
                     test2.setZ(tempZ);
 
                     player.setVelocity(test2);
-                    getLogger().info(test2 + " - Finalized");
-                }
-                
+                    //getLogger().info(test2 + " - Finalized");                 //DEBUG INFO
             }
-            
+                
         }
         
     }
