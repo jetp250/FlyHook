@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.magmaguy</groupId>
     <artifactId>FlyHook</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.8</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -41,13 +41,6 @@
            <groupId>org.spigotmc</groupId>
            <artifactId>spigot</artifactId>
            <version>1.9-R0.1-SNAPSHOT</version>
-      <type>jar</type>
-    </dependency>
-    <!--Bukkit API-->
-    <dependency>
-            <groupId>org.bukkit</groupId>
-            <artifactId>bukkit</artifactId>
-            <version>1.9-R0.1-SNAPSHOT</version>
       <type>jar</type>
     </dependency>
 </dependencies>
