@@ -7,17 +7,12 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_9_R1.entity.CraftPlayer;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FishHook;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerFishEvent;
-import static org.bukkit.event.player.PlayerFishEvent.State.FISHING;
 import static org.bukkit.event.player.PlayerFishEvent.State.IN_GROUND;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
@@ -53,12 +48,7 @@ public final class FlyHook  extends JavaPlugin implements Listener{
     
     @EventHandler
     public void Grapple(PlayerFishEvent event)
-    {
-        //Create simple grappling hook metadata
-        org.bukkit.inventory.ItemStack grapplingHook = new org.bukkit.inventory.ItemStack(Material.FISHING_ROD);
-        ItemMeta grapplingHookMeta = grapplingHook.getItemMeta();
-        grapplingHookMeta.setDisplayName("Grappling Hook");
-        
+    {      
         //Select player and hook
         Player player = event.getPlayer();
         FishHook hook = event.getHook();
@@ -109,13 +99,13 @@ public final class FlyHook  extends JavaPlugin implements Listener{
                     
                     test.multiply(new Vector(1.5, 1.5, 1.5));
 
-                    double tempX = abs(test.getX()) * test2.getX();
-                    double tempY = abs(test.getY()) * test2.getY();
-                    double tempZ = abs(test.getZ()) * test2.getZ();
+                    double newXVector = abs(test.getX()) * test2.getX();
+                    double newYVector = abs(test.getY()) * test2.getY();
+                    double newZVector = abs(test.getZ()) * test2.getZ();
 
-                    test2.setX(tempX);
-                    test2.setY(tempY);
-                    test2.setZ(tempZ);
+                    test2.setX(newXVector);
+                    test2.setY(newYVector);
+                    test2.setZ(newZVector);
 
                     player.setVelocity(test2);
                     //getLogger().info(test2 + " - Finalized");                   //DEBUG INFO
