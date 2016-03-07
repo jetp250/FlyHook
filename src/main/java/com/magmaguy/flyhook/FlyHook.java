@@ -17,8 +17,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 
-
-
 public final class FlyHook  extends JavaPlugin implements Listener{
     
     //Determine behaviour on startup
@@ -27,7 +25,6 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         
         getLogger().info("FlyHook - enabled!");
         this.getServer().getPluginManager().registerEvents(this, this);
-
         
     }
     
@@ -68,8 +65,35 @@ public final class FlyHook  extends JavaPlugin implements Listener{
             boolean flyingBoolean = flyingPlayer.cB();
             
             //If they are, proceed
-            if (flyingBoolean && event.getState() != IN_GROUND)
+            if (flyingBoolean)
             {
+                //If the block isn't air, proceed ##TODO - MORE FILTERS (liquids, other)
+                if (event.getState() == IN_GROUND)
+                {
+                        //Vector math
+                        //Apply if the block detection occurred correctly
+                        Vector test = hook.getLocation().toVector().subtract(player.getLocation().toVector());
+                        Vector test2 = test;
+
+                        //getLogger().info(test + " - First vector");                 //DEBUG INFO
+
+                        test = test.normalize();
+                        //getLogger().info(test + " - Normalized");                   //DEBUG INFO
+
+                        test.multiply(new Vector(1.5, 1.5, 1.5));
+
+                        double newXVector = abs(test.getX()) * test2.getX();
+                        double newYVector = abs(test.getY()) * test2.getY();
+                        double newZVector = abs(test.getZ()) * test2.getZ();
+
+                        test2.setX(newXVector);
+                        test2.setY(newYVector);
+                        test2.setZ(newZVector);
+
+                        player.setVelocity(test2);
+                        //getLogger().info(test2 + " - Finalized");                   //DEBUG INFO
+                }
+                
                 //getLogger().info(player + " is flying an Elytra");              //DEBUG INFO
                 
                 //Check if the player has hit a block
@@ -83,33 +107,6 @@ public final class FlyHook  extends JavaPlugin implements Listener{
                 
                 //getLogger().info("teleport location: " + targettedLocation);    //DEBUG INFO
                 }
-            
-            //If the block isn't air, proceed ##TODO - MORE FILTERS (liquids, other)
-            if (event.getState() == IN_GROUND)
-            {
-                    //Vector math
-                    //Apply if the block detection occurred correctly
-                    Vector test = hook.getLocation().toVector().subtract(player.getLocation().toVector());
-                    Vector test2 = test;
-                    
-                    //getLogger().info(test + " - First vector");                 //DEBUG INFO
-
-                    test = test.normalize();
-                    //getLogger().info(test + " - Normalized");                   //DEBUG INFO
-                    
-                    test.multiply(new Vector(1.5, 1.5, 1.5));
-
-                    double newXVector = abs(test.getX()) * test2.getX();
-                    double newYVector = abs(test.getY()) * test2.getY();
-                    double newZVector = abs(test.getZ()) * test2.getZ();
-
-                    test2.setX(newXVector);
-                    test2.setY(newYVector);
-                    test2.setZ(newZVector);
-
-                    player.setVelocity(test2);
-                    //getLogger().info(test2 + " - Finalized");                   //DEBUG INFO
-            }
                 
         }
         
