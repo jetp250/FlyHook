@@ -4,6 +4,7 @@ import static java.lang.Math.abs;
 import java.util.Set;
 import net.minecraft.server.v1_9_R1.EntityPlayer;
 import org.bukkit.Effect;
+import static org.bukkit.Effect.EXPLOSION_HUGE;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -111,16 +112,16 @@ public final class FlyHook  extends JavaPlugin implements Listener{
                     blockMaterial = player.getTargetBlock((Set<Material>) null, 32).getType();
                     //Teleport hook to the targetted location
                     hook.teleport(targettedBlock);
+                    //getLogger().info("teleport location: " + targettedLocation);    //DEBUG INFO
                 
                 }
                 
-//                if (targettedLocation != null)
-//                {
-//                    player.getWorld().spawnEntity(player.getLocation(), EntityType.FIREBALL);
-//                }
-                
-                //getLogger().info("teleport location: " + targettedLocation);    //DEBUG INFO
+                if (targettedBlock != null && blockMaterial != Material.AIR)
+                {
+                    player.getWorld().playEffect(player.getLocation(), Effect.COLOURED_DUST, null);
                 }
+                
+            }
                 
         }
         
