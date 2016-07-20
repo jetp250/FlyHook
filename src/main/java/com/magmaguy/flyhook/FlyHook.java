@@ -2,11 +2,9 @@ package com.magmaguy.flyhook;
 
 import static java.lang.Math.abs;
 import java.util.Set;
-import net.minecraft.server.v1_9_R1.EntityPlayer;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_9_R1.entity.CraftPlayer;
 import org.bukkit.entity.FishHook;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -60,9 +58,8 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         {
             //getLogger().info(player + "'s rod has a title.");                   //DEBUG INFO
             
-            //Find if player is flying
-            EntityPlayer flyingPlayer = ((CraftPlayer)player).getHandle();
-            boolean flyingBoolean = flyingPlayer.cB();
+            //Find if player is gliding
+            boolean flyingBoolean = player.isGliding();
             
             //If they are, proceed
             if (flyingBoolean)
