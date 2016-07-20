@@ -1,6 +1,5 @@
 package com.magmaguy.flyhook;
 
-import java.util.List;
 import java.util.Set;
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -23,8 +22,8 @@ public final class FlyHook  extends JavaPlugin implements Listener{
     
     Location targettedBlock;
     Material blockMaterial;
-    ArrayList<String> playerList;
-    ArrayList<Vector> vectorBlock;
+    ArrayList<String> playerList = new ArrayList(175);
+    ArrayList<Vector> vectorBlock = new ArrayList(175);
     
     //Determine behaviour on startup
     @Override
@@ -57,12 +56,10 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         //Check what the player is holding
         org.bukkit.inventory.ItemStack playerItem = player.getEquipment().getItemInMainHand();
         
-        
         //Block detection
         //Check if the item is a grapppling hook
         if (playerItem.getItemMeta().hasDisplayName())
         {
-            //getLogger().info(player.getDisplayName() + "'s rod has a title.");                   //DEBUG INFO
             
             //Find if player is gliding
             boolean flyingBoolean = player.isGliding();
@@ -71,7 +68,7 @@ public final class FlyHook  extends JavaPlugin implements Listener{
             if (flyingBoolean)
             {
                 //If the player already has hook data, use that
-                if (targettedBlock != null && blockMaterial != Material.AIR)
+                if (targettedBlock != null && blockMaterial != Material.AIR && playerList.contains(player.getName()))
                 {
                         int index = playerList.indexOf(player.getName());
                         
@@ -122,13 +119,6 @@ public final class FlyHook  extends JavaPlugin implements Listener{
                     //Visual cue to let people know they landed the hit
                     player.getWorld().playEffect(player.getLocation(), Effect.FIREWORKS_SPARK, null);
                     
-                    //Initializes the arraylists
-                    if (playerList == null)
-                    {
-                        playerList = new ArrayList();
-                        vectorBlock = new ArrayList();
-                    }
-                    
                     //Checks if there are existing entries for the player casting the line, deletes them
                     if(playerList.contains(player.getName()))
                     {
@@ -141,8 +131,6 @@ public final class FlyHook  extends JavaPlugin implements Listener{
                     //logs the relevant info for use in the very first part
                     playerList.add(player.getName());
                     vectorBlock.add(targettedBlock.toVector());
-                    
-                    getLogger().info("Logging done.");
                 }
                 
             }
@@ -157,8 +145,6 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         
         Player player = event.getPlayer();
         
-        getLogger().log(Level.INFO, "{0} has left the building.", player.getName());
-        
         if (playerList != null)
         {
             if (playerList.contains(player.getName()))
@@ -168,7 +154,6 @@ public final class FlyHook  extends JavaPlugin implements Listener{
                 playerList.remove(index);
                 vectorBlock.remove(index);
                 
-                //getLogger().log(Level.INFO, "{0}'s entry has been removed from the lists.", player.getName());
             }
         }
         
