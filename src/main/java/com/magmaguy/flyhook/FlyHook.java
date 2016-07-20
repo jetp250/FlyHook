@@ -1,6 +1,6 @@
 package com.magmaguy.flyhook;
 
-import static java.lang.Math.abs;
+import java.util.List;
 import java.util.Set;
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -13,9 +13,18 @@ import org.bukkit.event.player.PlayerFishEvent;
 import static org.bukkit.event.player.PlayerFishEvent.State.FISHING;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
+import static java.lang.Math.abs;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 
 public final class FlyHook  extends JavaPlugin implements Listener{
+    
+    Location targettedBlock;
+    Material blockMaterial;
+    ArrayList<String> playerList;
+    ArrayList<Vector> vectorBlock;
     
     //Determine behaviour on startup
     @Override
@@ -35,11 +44,8 @@ public final class FlyHook  extends JavaPlugin implements Listener{
     }
     
     public void FlyHook(){
-        
+
     }
-    
-    Location targettedBlock;
-    Material blockMaterial;
     
     @EventHandler
     public void Grapple(PlayerFishEvent event)
@@ -56,7 +62,7 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         //Check if the item is a grapppling hook
         if (playerItem.getItemMeta().hasDisplayName())
         {
-            //getLogger().info(player + "'s rod has a title.");                   //DEBUG INFO
+            //getLogger().info(player.getDisplayName() + "'s rod has a title.");                   //DEBUG INFO
             
             //Find if player is gliding
             boolean flyingBoolean = player.isGliding();
@@ -64,20 +70,17 @@ public final class FlyHook  extends JavaPlugin implements Listener{
             //If they are, proceed
             if (flyingBoolean)
             {
-                //getLogger().info(player + " is flying an Elytra");              //DEBUG INFO
-                
-                //If the block isn't air, proceed ##TODO - MORE FILTERS (liquids, other)
+                //If the player already has hook data, use that
                 if (targettedBlock != null && blockMaterial != Material.AIR)
                 {
+                        int index = playerList.indexOf(player.getName());
+                        
                         //Vector math
-                        //Apply if the block detection occurred correctly
-                        Vector toHookVector = targettedBlock.toVector().subtract(player.getLocation().toVector());
+                        //Applies if the block detection occurred correctly
+                        Vector toHookVector = vectorBlock.get(index).subtract(player.getLocation().toVector());
                         Vector toHookVectorCopy = toHookVector;
 
-                        //getLogger().info(toHookVector + " - First vector");                 //DEBUG INFO
-
                         toHookVector = toHookVector.normalize();
-                        //getLogger().info(toHookVector + " - Normalized");                   //DEBUG INFO
 
                         toHookVector.multiply(new Vector(1.0, 1.0, 1.0));
 
@@ -90,12 +93,18 @@ public final class FlyHook  extends JavaPlugin implements Listener{
                         toHookVectorCopy.setZ(newZVector);
 
                         player.setVelocity(toHookVectorCopy);
-                        //getLogger().info(toHookVectorCopy + " - Finalized");                   //DEBUG INFO
-                        
+
                         targettedBlock = null;
+                        
+                        //Scrub used data
+                        playerList.remove(index);
+                        vectorBlock.remove(index);
+                        
+                        getLogger().log(Level.INFO, "New userlist length: {0}", playerList.size());
                         
                 }
                 
+                //This is the first throw of the fishing line
                 if (event.getState() == FISHING)
                 {
                     //Check which block the player has targetted
@@ -104,20 +113,63 @@ public final class FlyHook  extends JavaPlugin implements Listener{
                     
                     //Teleport hook to the targetted location
                     hook.teleport(targettedBlock);
-                    
-                    //getLogger().info("teleport location: " + targettedLocation);    //DEBUG INFO
                 
                 }
                 
+                //This logs relevant data about the throw for the second part which is first in the code
                 if (targettedBlock != null && blockMaterial != Material.AIR)
                 {
+                    //Visual cue to let people know they landed the hit
+                    player.getWorld().playEffect(player.getLocation(), Effect.FIREWORKS_SPARK, null);
                     
-                    player.getWorld().playEffect(player.getLocation(), Effect.COLOURED_DUST, null);
+                    //Initializes the arraylists
+                    if (playerList == null)
+                    {
+                        playerList = new ArrayList();
+                        vectorBlock = new ArrayList();
+                    }
                     
+                    //Checks if there are existing entries for the player casting the line, deletes them
+                    if(playerList.contains(player.getName()))
+                    {
+                        int index = playerList.indexOf(player.getName());
+                        
+                        playerList.remove(index);
+                        vectorBlock.remove(index);
+                    }
+                    
+                    //logs the relevant info for use in the very first part
+                    playerList.add(player.getName());
+                    vectorBlock.add(targettedBlock.toVector());
+                    
+                    getLogger().info("Logging done.");
                 }
                 
             }
                 
+        }
+        
+    }
+    
+    //Make sure players that quit don't accidentally leave info stored in the lists
+    @EventHandler
+    public void Quit(PlayerQuitEvent event){
+        
+        Player player = event.getPlayer();
+        
+        getLogger().log(Level.INFO, "{0} has left the building.", player.getName());
+        
+        if (playerList != null)
+        {
+            if (playerList.contains(player.getName()))
+            {
+                int index = playerList.indexOf(player.getName());
+                
+                playerList.remove(index);
+                vectorBlock.remove(index);
+                
+                //getLogger().log(Level.INFO, "{0}'s entry has been removed from the lists.", player.getName());
+            }
         }
         
     }
