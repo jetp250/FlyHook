@@ -12,10 +12,17 @@ import org.bukkit.event.player.PlayerFishEvent;
 import static org.bukkit.event.player.PlayerFishEvent.State.FISHING;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
-import static java.lang.Math.abs;
 import java.util.ArrayList;
 import java.util.logging.Level;
+import static org.bukkit.Material.LEASH;
+import org.bukkit.World;
+import org.bukkit.entity.ComplexEntityPart;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import static java.lang.Math.abs;
 
 
 public final class FlyHook  extends JavaPlugin implements Listener{
@@ -155,6 +162,71 @@ public final class FlyHook  extends JavaPlugin implements Listener{
                 vectorBlock.remove(index);
                 
             }
+        }
+        
+    }
+    
+    Entity chickenEntity;
+    LivingEntity chickenLivingEntity;
+    
+    Entity pigEntity;
+    LivingEntity pigLivingEntity;
+    
+    Entity dragonEntity;
+    LivingEntity dragonLivingEntity;
+
+    
+    @EventHandler
+    public void LeashInteract(PlayerInteractAtEntityEvent event){
+        
+        Entity potentialDragonEntity = event.getRightClicked();
+        
+//        Entity testRabbit = event.getPlayer().getWorld().spawnEntity(event.getPlayer().getLocation(), EntityType.RABBIT);
+//        LivingEntity testRabbitLive = (LivingEntity) testRabbit;
+//        
+//        Entity testPig = event.getPlayer().getWorld().spawnEntity(event.getPlayer().getLocation(), EntityType.PIG);
+//        LivingEntity testPigLive = (LivingEntity) testRabbit;
+//        
+//        testRabbitLive.setLeashHolder(testPig);
+        
+        if (potentialDragonEntity instanceof ComplexEntityPart)
+        {
+            
+            dragonEntity = ((ComplexEntityPart)potentialDragonEntity).getParent();
+            
+            if (event.getPlayer().getEquipment().getItemInMainHand().getType().equals(LEASH) ||
+                    event.getPlayer().getEquipment().getItemInOffHand().getType().equals(LEASH))
+            {
+                event.getPlayer().setInvulnerable(true);
+                
+                World world = (World) dragonEntity.getWorld();
+                
+                pigEntity = world.spawnEntity(dragonEntity.getLocation(), EntityType.PIG);
+                pigLivingEntity = (LivingEntity) pigEntity;
+                
+                pigLivingEntity.setInvulnerable(true);
+                pigLivingEntity.setCollidable(false);
+                
+                Location adjustedPigLocation = pigEntity.getLocation();
+                adjustedPigLocation.setY(adjustedPigLocation.getY() + 6);
+                
+                chickenEntity = world.spawnEntity(adjustedPigLocation, EntityType.CHICKEN);
+                chickenLivingEntity = (LivingEntity) chickenEntity;
+                
+                chickenLivingEntity.setInvulnerable(true);
+                chickenLivingEntity.setCollidable(false);
+                
+                dragonLivingEntity = (LivingEntity) dragonEntity;
+                dragonLivingEntity.setCollidable(false);
+                
+                dragonEntity.setPassenger(pigEntity);
+                
+                chickenLivingEntity.setLeashHolder(pigEntity);
+                
+                chickenEntity.setPassenger(event.getPlayer());
+                
+            }
+            
         }
         
     }
