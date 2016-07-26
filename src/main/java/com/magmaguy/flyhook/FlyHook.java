@@ -176,18 +176,19 @@ public final class FlyHook  extends JavaPlugin implements Listener{
     LivingEntity dragonLivingEntity;
 
     
+    //A few words about this:
+    // Leashes don't work from any mob to any mob. This is not said on the javadocs. You'll have to experiment.
+    // I never bothered to kill or make the mobs invisible since I felt the necessity to see what was happening to them, and implementing a kill switch would've gotten in the way of debugging.
+    // setCollidible() does not, as of right now, seemingly, do anything. I'm not sure as of why.
+    // There's a major issue with the collision with the dragon. This is the reason why the chicken which the player rides is always spawned far above and beyond it.
+    // Leashes are so unreliable that this may very well work or not work. It's pretty much up to random luck.
+    // I had to give up due to reliability issues. I'd rather have something less fun but entirely reliable, to something that has an incredibly low chance to succeed but is really funny.
+    // I am by no means a programmer. Someone might very well make this into a stable, sane and reliable plugin. I'd love to see that happen.
+    
     @EventHandler
     public void LeashInteract(PlayerInteractAtEntityEvent event){
         
         Entity potentialDragonEntity = event.getRightClicked();
-        
-//        Entity testRabbit = event.getPlayer().getWorld().spawnEntity(event.getPlayer().getLocation(), EntityType.RABBIT);
-//        LivingEntity testRabbitLive = (LivingEntity) testRabbit;
-//        
-//        Entity testPig = event.getPlayer().getWorld().spawnEntity(event.getPlayer().getLocation(), EntityType.PIG);
-//        LivingEntity testPigLive = (LivingEntity) testRabbit;
-//        
-//        testRabbitLive.setLeashHolder(testPig);
         
         if (potentialDragonEntity instanceof ComplexEntityPart)
         {
