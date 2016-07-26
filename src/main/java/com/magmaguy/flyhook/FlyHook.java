@@ -14,15 +14,15 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.logging.Level;
-import static org.bukkit.Material.LEASH;
-import org.bukkit.World;
-import org.bukkit.entity.ComplexEntityPart;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import static java.lang.Math.abs;
+import static org.bukkit.Material.FISHING_ROD;
+import org.bukkit.entity.EntityType;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.inventory.ItemStack;
 
 
 public final class FlyHook  extends JavaPlugin implements Listener{
@@ -53,6 +53,8 @@ public final class FlyHook  extends JavaPlugin implements Listener{
 
     }
     
+    ItemStack playerItem;
+    
     @EventHandler
     public void Grapple(PlayerFishEvent event)
     {      
@@ -61,7 +63,20 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         FishHook hook = event.getHook();
         
         //Check what the player is holding
-        org.bukkit.inventory.ItemStack playerItem = player.getEquipment().getItemInMainHand();
+        ItemStack playerItemRight = player.getEquipment().getItemInMainHand();
+        ItemStack playerItemLeft = player.getEquipment().getItemInOffHand();
+        
+        if(playerItemRight.getType().equals(FISHING_ROD))
+        {
+            
+            playerItem = playerItemRight;
+            
+        } else if (playerItemLeft.getType().equals(FISHING_ROD))
+        {
+            
+            playerItem = playerItemLeft;
+            
+        }
         
         //Block detection
         //Check if the item is a grapppling hook
@@ -105,6 +120,7 @@ public final class FlyHook  extends JavaPlugin implements Listener{
                         vectorBlock.remove(index);
                         
                         getLogger().log(Level.INFO, "New userlist length: {0}", playerList.size());
+                        
                         
                 }
                 
@@ -166,65 +182,58 @@ public final class FlyHook  extends JavaPlugin implements Listener{
         
     }
     
-    Entity chickenEntity;
-    LivingEntity chickenLivingEntity;
-    
-    Entity pigEntity;
-    LivingEntity pigLivingEntity;
-    
-    Entity dragonEntity;
-    LivingEntity dragonLivingEntity;
-
-    
-    //A few words about this:
-    // Leashes don't work from any mob to any mob. This is not said on the javadocs. You'll have to experiment.
-    // I never bothered to kill or make the mobs invisible since I felt the necessity to see what was happening to them, and implementing a kill switch would've gotten in the way of debugging.
-    // setCollidible() does not, as of right now, seemingly, do anything. I'm not sure as of why.
-    // There's a major issue with the collision with the dragon. This is the reason why the chicken which the player rides is always spawned far above and beyond it.
-    // Leashes are so unreliable that this may very well work or not work. It's pretty much up to random luck.
-    // I had to give up due to reliability issues. I'd rather have something less fun but entirely reliable, to something that has an incredibly low chance to succeed but is really funny.
-    // I am by no means a programmer. Someone might very well make this into a stable, sane and reliable plugin. I'd love to see that happen.
+    //Allow players to mount an enderdragon if they have a fishing hook, to be replaced with drop
+    @EventHandler
+    public void DragonHijack(EntityDamageByEntityEvent event){
+        
+        if(event.getDamager() instanceof Player)
+        {
+            Player player = (Player) event.getDamager();
+            
+             if(event.getEntityType().equals(EntityType.ENDER_DRAGON))
+             {
+                 Entity dragonEntity = event.getEntity();
+                 
+                 if(player.getEquipment().getItemInMainHand().getType().equals(FISHING_ROD)||
+                         player.getEquipment().getItemInOffHand().getType().equals(FISHING_ROD))
+                 {
+                     
+                     dragonEntity.setPassenger(player);
+                     
+                 }
+                 
+             }
+             
+        }
+        
+    }
     
     @EventHandler
-    public void LeashInteract(PlayerInteractAtEntityEvent event){
+    public void damageCrits(EntityDamageEvent event){
         
-        Entity potentialDragonEntity = event.getRightClicked();
+        Entity potentialDragon  = event.getEntity();
         
-        if (potentialDragonEntity instanceof ComplexEntityPart)
+        getLogger().log(Level.INFO, "Projectile shot entity: {0}", potentialDragon);
+        
+        if((event.getEntityType().equals(EntityType.ENDER_DRAGON)))
         {
             
-            dragonEntity = ((ComplexEntityPart)potentialDragonEntity).getParent();
+            LivingEntity dragonLivingEntity = (LivingEntity) potentialDragon;
             
-            if (event.getPlayer().getEquipment().getItemInMainHand().getType().equals(LEASH) ||
-                    event.getPlayer().getEquipment().getItemInOffHand().getType().equals(LEASH))
+            getLogger().info("Projectile hit a dragon");
+            
+            if(dragonLivingEntity.getPassenger() != null)
             {
-                event.getPlayer().setInvulnerable(true);
                 
-                World world = (World) dragonEntity.getWorld();
+                double critBonus = dragonLivingEntity.getLastDamage() * 4;
+                dragonLivingEntity.damage(critBonus);
                 
-                pigEntity = world.spawnEntity(dragonEntity.getLocation(), EntityType.PIG);
-                pigLivingEntity = (LivingEntity) pigEntity;
+                Player player = (Player) potentialDragon.getPassenger();
                 
-                pigLivingEntity.setInvulnerable(true);
-                pigLivingEntity.setCollidable(false);
+                player.sendRawMessage("Dragon crit! " + critBonus + " damage!");
                 
-                Location adjustedPigLocation = pigEntity.getLocation();
-                adjustedPigLocation.setY(adjustedPigLocation.getY() + 6);
-                
-                chickenEntity = world.spawnEntity(adjustedPigLocation, EntityType.CHICKEN);
-                chickenLivingEntity = (LivingEntity) chickenEntity;
-                
-                chickenLivingEntity.setInvulnerable(true);
-                chickenLivingEntity.setCollidable(false);
-                
-                dragonLivingEntity = (LivingEntity) dragonEntity;
-                dragonLivingEntity.setCollidable(false);
-                
-                dragonEntity.setPassenger(pigEntity);
-                
-                chickenLivingEntity.setLeashHolder(pigEntity);
-                
-                chickenEntity.setPassenger(event.getPlayer());
+                //You don't want to know.
+                player.setInvulnerable(false);
                 
             }
             
