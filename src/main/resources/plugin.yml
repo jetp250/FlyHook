@@ -1,3 +1,8 @@
 name: FlyHook
+version: 1.4.1
 main: com.magmaguy.flyhook.FlyHook
-version: 1.4.0
+
+commands:
+  flyhook:
+    description: Reloads the config.
+    aliases: [fh, fhook]
