@@ -43,7 +43,7 @@ public class FlyHookListener implements Listener {
 
 	// Disabling firework boosts
 	@EventHandler
-	public void onGainVelocity(PlayerInteractEvent event) {
+	public void onInteract(PlayerInteractEvent event) {
 		// Check if the player is gliding
 		if (!disableFireworks || !event.getPlayer().isGliding()) {
 			return;
