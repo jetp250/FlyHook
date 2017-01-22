@@ -1,244 +1,88 @@
 package com.magmaguy.flyhook;
 
-import java.util.Set;
-import org.bukkit.Effect;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.entity.FishHook;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerFishEvent;
-import static org.bukkit.event.player.PlayerFishEvent.State.FISHING;
+import java.io.File;
+
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.Vector;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.event.player.PlayerQuitEvent;
-import static java.lang.Math.abs;
-import static org.bukkit.Material.FISHING_ROD;
-import org.bukkit.entity.EntityType;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.inventory.ItemStack;
 
+public class FlyHook extends JavaPlugin {
 
-public final class FlyHook  extends JavaPlugin implements Listener{
-    
-    Location targettedBlock;
-    Material blockMaterial;
-    ArrayList<String> playerList = new ArrayList(175);
-    ArrayList<Vector> vectorBlock = new ArrayList(175);
-    
-    //Determine behaviour on startup
-    @Override
-    public void onEnable(){
-        
-        getLogger().info("FlyHook - enabled!");
-        this.getServer().getPluginManager().registerEvents(this, this);
-        
-    }
-    
-    //Determine behaviour on shutdown
-    @Override
-    public void onDisable(){
-        
-        getLogger().info("FlyHook - shutting down!");
-        
-    }
-    
-    public void FlyHook(){
+	private FileConfiguration config;
+	private File configFile;
+	private FlyHookListener listener;
 
-    }
-    
-    ItemStack playerItem;
-    
-    @EventHandler
-    public void Grapple(PlayerFishEvent event)
-    {      
-        //Select player and hook
-        Player player = event.getPlayer();
-        FishHook hook = event.getHook();
-        
-        //Check what the player is holding
-        ItemStack playerItemRight = player.getEquipment().getItemInMainHand();
-        ItemStack playerItemLeft = player.getEquipment().getItemInOffHand();
-        
-        if(playerItemRight.getType().equals(FISHING_ROD))
-        {
-            
-            playerItem = playerItemRight;
-            
-        } else if (playerItemLeft.getType().equals(FISHING_ROD))
-        {
-            
-            playerItem = playerItemLeft;
-            
-        }
-        
-        //Block detection
-        //Check if the item is a grapppling hook
-        if (playerItem.getItemMeta().hasDisplayName())
-        {
-            
-            //Find if player is gliding
-            boolean flyingBoolean = player.isGliding();
-            
-            //If they are, proceed
-            if (flyingBoolean)
-            {
-                //If the player already has hook data, use that
-                if (targettedBlock != null && blockMaterial != Material.AIR && playerList.contains(player.getName()))
-                {
-                        int index = playerList.indexOf(player.getName());
-                        
-                        //Vector math
-                        //Applies if the block detection occurred correctly
-                        Vector toHookVector = vectorBlock.get(index).subtract(player.getLocation().toVector());
-                        Vector toHookVectorCopy = toHookVector;
+	@Override
+	public void onEnable() {
 
-                        toHookVector = toHookVector.normalize();
+		// Register the listener class and initialize the variable.
+		this.getServer().getPluginManager().registerEvents(listener = new FlyHookListener(), this);
 
-                        toHookVector.multiply(new Vector(1.0, 1.0, 1.0));
+		// Setup & load config.
+		this.configFile = new File(this.getDataFolder(), "Config.yml");
+		this.config = YamlConfiguration.loadConfiguration(configFile);
+		if (!configFile.exists()) {
+			saveConfig();
+		}
+		config.options()
+				.header("This is the configuration file of FlyHook." + "\nAs you can see, there are lots to configure."
+						+ "\n\nThe 'Power' option defines the speed boost when hooking.");
 
-                        double newXVector = abs(toHookVector.getX()) * toHookVectorCopy.getX() + player.getVelocity().getX();
-                        double newYVector = abs(toHookVector.getY()) * toHookVectorCopy.getY() + player.getVelocity().getY();
-                        double newZVector = abs(toHookVector.getZ()) * toHookVectorCopy.getZ() + player.getVelocity().getZ();
+		// Getting the values from config
+		listener.setPower(getConfigEntry(config, "Power", 2.0, true));
+		listener.setFireworksDisabled(getConfigEntry(config, "Disable Fireworks", true, true));
+		listener.setMaxRange(getConfigEntry(config, "Max Hooking Range", 32, true));
 
-                        toHookVectorCopy.setX(newXVector);
-                        toHookVectorCopy.setY(newYVector);
-                        toHookVectorCopy.setZ(newZVector);
+		// Saving the possible changes
+		saveConfig();
 
-                        player.setVelocity(toHookVectorCopy);
+	}
 
-                        targettedBlock = null;
-                        
-                        //Scrub used data
-                        playerList.remove(index);
-                        vectorBlock.remove(index);
-                        
-                        getLogger().log(Level.INFO, "New userlist length: {0}", playerList.size());
-                        
-                        
-                }
-                
-                //This is the first throw of the fishing line
-                if (event.getState() == FISHING)
-                {
-                    //Check which block the player has targetted
-                    targettedBlock = player.getTargetBlock((Set<Material>) null, 32).getLocation();
-                    blockMaterial = player.getTargetBlock((Set<Material>) null, 32).getType();
-                    
-                    //Teleport hook to the targetted location
-                    hook.teleport(targettedBlock);
-                
-                }
-                
-                //This logs relevant data about the throw for the second part which is first in the code
-                if (targettedBlock != null && blockMaterial != Material.AIR)
-                {
-                    //Visual cue to let people know they landed the hit
-                    player.getWorld().playEffect(player.getLocation(), Effect.FIREWORKS_SPARK, null);
-                    
-                    //Checks if there are existing entries for the player casting the line, deletes them
-                    if(playerList.contains(player.getName()))
-                    {
-                        int index = playerList.indexOf(player.getName());
-                        
-                        playerList.remove(index);
-                        vectorBlock.remove(index);
-                    }
-                    
-                    //logs the relevant info for use in the very first part
-                    playerList.add(player.getName());
-                    vectorBlock.add(targettedBlock.toVector());
-                }
-                
-            }
-                
-        }
-        
-    }
-    
-    //Make sure players that quit don't accidentally leave info stored in the lists
-    @EventHandler
-    public void Quit(PlayerQuitEvent event){
-        
-        Player player = event.getPlayer();
-        
-        if (playerList != null)
-        {
-            if (playerList.contains(player.getName()))
-            {
-                int index = playerList.indexOf(player.getName());
-                
-                playerList.remove(index);
-                vectorBlock.remove(index);
-                
-            }
-        }
-        
-    }
-    
-    //Allow players to mount an enderdragon if they have a fishing hook, to be replaced with drop
-    @EventHandler
-    public void DragonHijack(EntityDamageByEntityEvent event){
-        
-        if(event.getDamager() instanceof Player)
-        {
-            Player player = (Player) event.getDamager();
-            
-             if(event.getEntityType().equals(EntityType.ENDER_DRAGON))
-             {
-                 Entity dragonEntity = event.getEntity();
-                 
-                 if(player.getEquipment().getItemInMainHand().getType().equals(FISHING_ROD)||
-                         player.getEquipment().getItemInOffHand().getType().equals(FISHING_ROD))
-                 {
-                     
-                     dragonEntity.setPassenger(player);
-                     
-                 }
-                 
-             }
-             
-        }
-        
-    }
-    
-    @EventHandler
-    public void damageCrits(EntityDamageEvent event){
-        
-        Entity potentialDragon  = event.getEntity();
-        
-        getLogger().log(Level.INFO, "Projectile shot entity: {0}", potentialDragon);
-        
-        if((event.getEntityType().equals(EntityType.ENDER_DRAGON)))
-        {
-            
-            LivingEntity dragonLivingEntity = (LivingEntity) potentialDragon;
-            
-            getLogger().info("Projectile hit a dragon");
-            
-            if(dragonLivingEntity.getPassenger() != null)
-            {
-                
-                double critBonus = dragonLivingEntity.getLastDamage() * 4;
-                dragonLivingEntity.damage(critBonus);
-                
-                Player player = (Player) potentialDragon.getPassenger();
-                
-                player.sendRawMessage("Dragon crit! " + critBonus + " damage!");
-                
-                //You don't want to know.
-                player.setInvulnerable(false);
-                
-            }
-            
-        }
-        
-    }
-    
+	@Override
+	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		if (command.getName().equalsIgnoreCase("flyhook")) {
+			// Making sure the player has permission to reload the config
+			if (!sender.hasPermission("flyhook.reload")) {
+				sender.sendMessage("§cInsufficient permissions.");
+				return false;
+			}
+			// Getting the new values from config
+			loadConfig();
+			listener.setPower(getConfigEntry(config, "Power", 2.0, true));
+			listener.setFireworksDisabled(getConfigEntry(config, "Disable Fireworks", true, true));
+			listener.setMaxRange(getConfigEntry(config, "Max Hooking Range", 32, true));
+
+			sender.sendMessage("§aConfig reloaded!");
+		}
+		return false;
+	}
+
+	// An easy method of getting values from config, although it has an 'unchecked' cast.
+	@SuppressWarnings("unchecked")
+	private <T> T getConfigEntry(FileConfiguration config, String path, T def, boolean create) {
+		if (config.contains(path)) {
+			return (T) config.get(path, def);
+		}
+		if (create) {
+			config.set(path, def);
+		}
+		return def;
+	}
+
+	public void saveConfig() {
+		try {
+			config.save(configFile);
+		} catch (Exception e) {
+		}
+	}
+
+	public void loadConfig() {
+		try {
+			config.load(configFile);
+		} catch (Exception e) {
+		}
+	}
+
 }
