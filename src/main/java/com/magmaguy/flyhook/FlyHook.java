@@ -30,10 +30,8 @@ public class FlyHook extends JavaPlugin {
 				.header("This is the configuration file of FlyHook." + "\nAs you can see, there are lots to configure."
 						+ "\n\nThe 'Power' option defines the speed boost when hooking.");
 
-		// Getting the values from config
-		listener.setPower(getConfigEntry(config, "Power", 2.0, true));
-		listener.setFireworksDisabled(getConfigEntry(config, "Disable Fireworks", true, true));
-		listener.setMaxRange(getConfigEntry(config, "Max Hooking Range", 32, true));
+		// It does more than just loading.
+		loadConfig();
 
 		// Saving the possible changes
 		saveConfig();
@@ -50,16 +48,13 @@ public class FlyHook extends JavaPlugin {
 			}
 			// Getting the new values from config
 			loadConfig();
-			listener.setPower(getConfigEntry(config, "Power", 2.0, true));
-			listener.setFireworksDisabled(getConfigEntry(config, "Disable Fireworks", true, true));
-			listener.setMaxRange(getConfigEntry(config, "Max Hooking Range", 32, true));
 
 			sender.sendMessage("§aConfig reloaded!");
 		}
 		return false;
 	}
 
-	// An easy method of getting values from config, although it has an 'unchecked' cast.
+	// An easy method of getting values from config.
 	@SuppressWarnings("unchecked")
 	private <T> T getConfigEntry(FileConfiguration config, String path, T def, boolean create) {
 		if (config.contains(path)) {
@@ -81,6 +76,11 @@ public class FlyHook extends JavaPlugin {
 	public void loadConfig() {
 		try {
 			config.load(configFile);
+			// Get the new values
+			listener.setPower(getConfigEntry(config, "Power", 2.0, true));
+			listener.setFireworksDisabled(getConfigEntry(config, "Disable Fireworks", true, true));
+			listener.setMaxRange(getConfigEntry(config, "Max Hooking Range", 32, true));
+			listener.setCriticalsEnabled(getConfigEntry(config, "Criticals When Flying", true, true));
 		} catch (Exception e) {
 		}
 	}
