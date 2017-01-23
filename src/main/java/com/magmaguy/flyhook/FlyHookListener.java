@@ -104,24 +104,6 @@ public class FlyHookListener implements Listener {
 		}
 	}
 
-	// Allow players to mount an enderdragon if they have a fishing hook
-	@EventHandler
-	public void dragonHijack(EntityDamageByEntityEvent event) {
-
-		if (event.getEntityType().equals(EntityType.ENDER_DRAGON) && event.getDamager() instanceof Player) {
-
-			Player player = (Player) event.getDamager();
-
-			if (player.getInventory().getItemInMainHand().getType() == GRAPPLING_HOOK
-					|| player.getInventory().getItemInOffHand().getType() == GRAPPLING_HOOK) {
-
-				// Mount the player
-				event.getEntity().setPassenger(player);
-
-			}
-		}
-	}
-
 	@EventHandler
 	public void damageCrits(EntityDamageEvent event) {
 
