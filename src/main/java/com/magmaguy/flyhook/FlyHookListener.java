@@ -48,12 +48,13 @@ public class FlyHookListener implements Listener {
 	// Disabling firework boosts
 	@EventHandler
 	public void onInteract(PlayerInteractEvent event) {
+		
+		Player player = event.getPlayer();
+		
 		// Check if the player is gliding
-		if (!disableFireworks || !event.getPlayer().isGliding()) {
+		if ((!disableFireworks && !player.hasPermission("flyhook.allowfireworks")) || !player.isGliding()) {
 			return;
 		}
-
-		Player player = event.getPlayer();
 
 		// Check, if the player had fireworks in hands
 		ItemStack mainHand = player.getInventory().getItemInMainHand();
@@ -71,7 +72,7 @@ public class FlyHookListener implements Listener {
 		Player player = event.getPlayer();
 
 		// Check, if the player is gliding and fishing
-		if (!player.isGliding() || event.getState() != State.FISHING) {
+		if (!player.isGliding() || event.getState() != State.FISHING || !player.hasPermission("flyhook.use")) {
 			return;
 		}
 
