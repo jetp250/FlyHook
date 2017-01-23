@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerFishEvent.State;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -26,7 +27,6 @@ public class FlyHookListener implements Listener {
 	private double strength = 2.0;
 	private int maxRange = 32;
 	private boolean disableFireworks = false;
-	private Material GRAPPLING_HOOK = Material.FISHING_ROD;
 
 	// Methods to access the fields from main class
 	public void setPower(double strength) {
@@ -49,11 +49,11 @@ public class FlyHookListener implements Listener {
 			return;
 		}
 
-		Player p = event.getPlayer();
+		Player player = event.getPlayer();
 
 		// Check, if the player had fireworks in hands
-		ItemStack mainHand = p.getInventory().getItemInMainHand();
-		ItemStack offHand = p.getInventory().getItemInOffHand();
+		ItemStack mainHand = player.getInventory().getItemInMainHand();
+		ItemStack offHand = player.getInventory().getItemInOffHand();
 
 		if (mainHand.getType() == Material.FIREWORK || offHand.getType() == Material.FIREWORK) {
 			// Cancel the event
@@ -71,22 +71,14 @@ public class FlyHookListener implements Listener {
 			return;
 		}
 
-		// Check what the player is holding
-		ItemStack mainHand = player.getInventory().getItemInMainHand();
-		ItemStack offHand = player.getInventory().getItemInOffHand();
-
-		// Check for the fishing rod
-		if (mainHand.getType() != GRAPPLING_HOOK && offHand.getType() != GRAPPLING_HOOK) {
-			return;
-		}
-
 		// Check which block the player has targetted
 		Block targettedBlock = player.getTargetBlock((Set<Material>) null, maxRange);
 		Location origin = targettedBlock.getLocation().add(0.5, 0.5, 0.5);
 		Material blockMaterial = targettedBlock.getType();
 
-		// Making sure the block is valid, we don't want water and lava to be hookable.
-		if (targettedBlock != null && blockMaterial != Material.AIR && !targettedBlock.isLiquid()) {
+		// Making sure the block is valid, we don't want water and lava to be
+		// hookable.
+		if (blockMaterial != Material.AIR && !targettedBlock.isLiquid()) {
 			// Teleport the hook to the target block
 			event.getHook().teleport(origin, TeleportCause.PLUGIN);
 
@@ -98,31 +90,37 @@ public class FlyHookListener implements Listener {
 			// Applies if the block detection occurred correctly
 			Vector toHookVector = origin.subtract(player.getLocation()).toVector();
 
-			toHookVector.normalize().multiply(strength).add(player.getVelocity().normalize());
+			toHookVector.normalize().multiply(strength).add(player.getVelocity());
 
 			player.setVelocity(toHookVector);
+
+			event.getHook().remove();
 		}
 	}
-
+	
 	@EventHandler
-	public void damageCrits(EntityDamageEvent event) {
+	public void onDamage(EntityDamageByEntityEvent event) {
 
-		Entity potentialDragon = event.getEntity();
+		DamageCause cause = event.getCause();
+		Entity damager = event.getDamager();
 
-		if (event.getEntityType() == EntityType.ENDER_DRAGON) {
+		// Messy, but short and easy way to get the player.
+		damager = cause == DamageCause.PROJECTILE ? (Entity) ((Projectile) damager).getShooter() : damager;
 
-			LivingEntity dragonLivingEntity = (LivingEntity) potentialDragon;
-			Entity passenger = dragonLivingEntity.getPassenger();
-
-			// Check if the passenger is actually a player, to not break plugins
-			// that work with passengers.
-			if (passenger != null && passenger instanceof Player) {
-
-				// Apply the crit damage to the dragon
-				double critBonus = dragonLivingEntity.getLastDamage() * 4;
-				event.setDamage(event.getDamage() + critBonus);
-
-			}
+		// Make sure the damager was a player.
+		if (damager.getType() != EntityType.PLAYER) {
+			return;
 		}
+
+		Player player = (Player) damager;
+
+		// Player has to be flying
+		if (!player.isGliding()) {
+			return;
+		}
+
+		// Increase the damage.
+		event.setDamage(event.getDamage() * 3);
+		
 	}
 }
