@@ -1,5 +1,5 @@
 name: FlyHook
-version: 1.4.1
+version: 1.5
 main: com.magmaguy.flyhook.FlyHook
 
 commands:
