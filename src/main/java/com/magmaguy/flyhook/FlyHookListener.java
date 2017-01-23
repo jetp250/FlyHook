@@ -8,12 +8,11 @@ import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerFishEvent.State;
@@ -27,6 +26,7 @@ public class FlyHookListener implements Listener {
 	private double strength = 2.0;
 	private int maxRange = 32;
 	private boolean disableFireworks = false;
+	private boolean enableCriticals = true;
 
 	// Methods to access the fields from main class
 	public void setPower(double strength) {
@@ -39,6 +39,10 @@ public class FlyHookListener implements Listener {
 
 	public void setMaxRange(int range) {
 		this.maxRange = range;
+	}
+	
+	public void setCriticalsEnabled(boolean value) {
+		this.enableCriticals = value;
 	}
 
 	// Disabling firework boosts
@@ -100,6 +104,10 @@ public class FlyHookListener implements Listener {
 	
 	@EventHandler
 	public void onDamage(EntityDamageByEntityEvent event) {
+		
+		if (!enableCriticals) {
+			return;
+		}
 
 		DamageCause cause = event.getCause();
 		Entity damager = event.getDamager();
